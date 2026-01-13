@@ -1,18 +1,36 @@
+import numpy as np
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-
-traindata_path = r"C:\Users\finnr\OneDrive\Dokumente\SEP\datasets\DATASET\train"
-testdata_path = r"C:\Users\finnr\OneDrive\Dokumente\SEP\datasets\DATASET\test"
+import csv
 
 transform = transforms.Compose([transforms.Resize((64, 64)), transforms.ToTensor()])
-
-# Load dataset
-train_dataset = datasets.ImageFolder(root=traindata_path, transform=transform)
-test_dataset = datasets.ImageFolder(root=testdata_path, transform=transform)
+train_datapath = "datasets/DATASET/train"
+test_datapath = "datasets/DATASET/test"
 
 
-# DataLoader for batching
-trainloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-testloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+# Load Images
+train_images = datasets.ImageFolder(root=train_datapath, transform=transform,)
+test_images = datasets.ImageFolder(root=test_datapath, transform=transform)
+
+
+# Load Labels
+with open('datasets/test_labels.csv', mode='r', newline='') as file:
+    reader = csv.DictReader(file) 
+    test_labels = []
+    for row in reader:
+        filename = row['image']
+        label = row['label'] 
+        test_labels.append([label])
+
+with open('datasets/train_labels.csv', mode='r', newline='') as file:
+    reader = csv.DictReader(file) 
+    train_labels = []
+    for row in reader:
+        filename = row['image']
+        label = row['label'] 
+        train_labels.append([label])
+
+
+
+
 
 
