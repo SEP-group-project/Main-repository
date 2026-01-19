@@ -1,16 +1,11 @@
-import torch
+from captum.attr import Saliency, NoiseTunnel
 
 
-def gradient_saliency(model, img, target_class):
-    model.eval()
-    img.requires_grad_()
+def saliency_with_SmoothGrad(model, img, target_class):
+    
+    saliency = Saliency(model)
+    nt = NoiseTunnel(saliency)
+    attribution = nt.attribution(img, nt_typ='smoothgrad',nt_samples=10, target=target_class )
 
-    pred = model(img)
-    score = pred[0, target_class]
-
-    score.backward()
-
-    saliency, _ = torch.max(img.grad.detach.abs(), dim=1)
-
-    return saliency[0].cpu()
+    return attribution
 
