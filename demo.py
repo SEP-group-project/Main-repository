@@ -2,16 +2,8 @@ import cv2
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.optim import Adam
-from torch.utils.data import DataLoader
-import torch.optim as optim
+from torchvision import transforms
 
-
-from data_import import train_images, test_images
-
-# still not done 
-# ------------------------- model definition , from classif.py
-num_classes = len(train_images.classes)
 idx_to_emotion = {
     0: "surprise",    
     1: "fear",        
@@ -46,32 +38,64 @@ class EmotionCNN(nn.Module):
     def forward(self, x):
         x = self.features(x)
         return self.classifier(x)
-# -------------------------
+
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = EmotionCNN(num_classes=6).to(device)
+WEIGHTS_PATH = "best_model.pt"
+state = torch.load(WEIGHTS_PATH, map_location=device)
+model.load_state_dict(state)
+model.eval()
+
+
+
+preprocess = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+])
+
+@torch.no_grad()
+def predict_emotion(face_bgr):
+    face_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
+    face_rgb = cv2.resize(face_rgb, (64, 64), interpolation=cv2.INTER_AREA)
+
+    x = preprocess(face_rgb).unsqueeze(0).to(device)  
+    logits = model(x)
+    probs = torch.softmax(logits, dim=1)
+    conf, pred = torch.max(probs, dim=1)
+
+    pred_idx = int(pred.item())
+    conf = float(conf.item())
+    emotion = idx_to_emotion.get(pred_idx, str(pred_idx))
+    return emotion, conf, pred_idx
+
 
 cap = cv2.VideoCapture(0)
+face_detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+if face_detector.empty():
+    raise RuntimeError("couldn't load haarcascade_frontalface_default.xml ") #change:i put the face detector outside the loop cuz its more efficient this way
+if not cap.isOpened():
+    raise RuntimeError("couldn't open webcam.")
 while True:
     ret, frame = cap.read()
-    frame = cv2.resize(frame, (640, 480))
     if not ret:
-        print(ret)
-    # face detection with haarcascade 
-    face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        break
+    frame = cv2.resize(frame, (640, 480))
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    # detect faces on camera 
     faces = face_detector.detectMultiScale(gray, 1.3, 5)
 
-    #process each face found + draw rectangle around it
     for (x, y, w, h) in faces:
-        cv2.rectangle(frame, (x, y-50), (x + w, y + h+10), (0, 255, 0), 4)
-        roi_gray_scale = gray[y:y + h, x:x + w]
-        cropped_img = np.expand_dims(np.expand_dims(cv2.resize(frame[y:y + h, x:x + w], (224, 224)), -1), 0)
+        pad = int(0.15 * w)
+        x1 = max(0, x - pad)
+        y1 = max(0, y - pad)
+        x2 = min(frame.shape[1], x + w + pad)
+        y2 = min(frame.shape[0], y + h + pad)
 
-        # predict emotion on the cropped image
-        # model prediction code comes here
-        #placeholder until model is done ---------
-        predicted_emotion = "happy"  # placeholder
-        cv2.putText(frame, predicted_emotion, (x + 5, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
-        #----------------------------------------
+        face_roi = frame[y1:y2, x1:x2]
+        emotion, conf, _ = predict_emotion(face_roi)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        label = f"{emotion}: {conf:.2f}"
+        cv2.putText(frame, label, (x1, max(20, y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2, cv2.LINE_AA)
 
     cv2.imshow('emotion detector', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -79,6 +103,3 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
-
-
-
