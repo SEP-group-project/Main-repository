@@ -1,0 +1,31 @@
+import csv
+
+# Define your label mapping
+label_map = {
+    "surprise": 1,
+    "fear": 2,
+    "disgust": 3,
+    "happiness": 4,
+    "sadness": 5,
+    "anger": 6
+}
+
+# Open input and output files
+with open("your_input.csv", "r", newline="", encoding="utf-8") as infile, \
+     open("formatted_output.csv", "w", newline="", encoding="utf-8") as outfile:
+
+    reader = csv.DictReader(infile)
+    writer = csv.writer(outfile)
+
+    # Write new header
+    writer.writerow(["image", "label"])
+
+    # Process each row
+    for row in reader:
+        image = row["pth"]                   # Keep original image path
+        label_text = row["label"].strip()    # Get the text label
+        label_num = label_map.get(label_text, "")  # Convert to number (empty if unknown)
+        writer.writerow([image, label_num])
+
+print("✅ Done! Saved as formatted_output.csv")
+

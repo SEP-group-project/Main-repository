@@ -93,7 +93,7 @@ def eval_epoch(model, loader):
 
 best_acc = 0.0
 
-for epoch in range(1, 26):
+for epoch in range(1, 20):
     train_loss, train_acc = train_epoch(model, train_loader)
     test_loss, test_acc   = eval_epoch(model, test_loader)
 
