@@ -3,23 +3,35 @@ import numpy as np
 import cv2
 from torchvision import models
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-def get_class_label(preds):
-   return preds.argmax(dim=1).item()
-
-def get_conv_layer(model, conv_layer_name):
-    for name, layer in model.named_modules():
-        if name == conv_layer_name:
-            return layer
-    raise ValueError(f"Layer '{conv_layer_name}' not found in the model.")
+preprocess = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+])
 
 
 
+def get_last_conv_layer(model):
+    
+    return model.features[6]
 
-def gradcam(model, img_tensor, class_index, conv_layer_name=" "):
-    conv_layer = get_conv_layer(model, conv_layer_name)
+
+
+
+def gradcam(model, face_bgr, class_idx):
+    
     model.eval()
+
+    face_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
+    face_rgb = cv2.resize(face_rgb, (64, 64))
+    x = preprocess(face_rgb).unsqueeze(0).to(device)
+    
+    x.requires_grad_(True)
+    
+
+    conv_layer = get_last_conv_layer(model)
+    
 
     activations = None
     gradients = None
@@ -34,12 +46,12 @@ def gradcam(model, img_tensor, class_index, conv_layer_name=" "):
 
     
     hook_f = conv_layer.register_forward_hook(forward_hook)  
-    hook_b = conv_layer.register_backward_hook(backward_hook)
+    hook_b = conv_layer.register_full_backward_hook(backward_hook)
 
     
-    preds = model(img_tensor)
-    score = preds[:, class_index]  # score of the predicted class
-    model.zero_grad()
+    preds = model(x)
+    score = preds[:, class_idx]  # score of the predicted class
+    model.zero_grad(set_to_none=True)
     score.backward()
 
     hook_b.remove()
@@ -63,8 +75,8 @@ def gradcam(model, img_tensor, class_index, conv_layer_name=" "):
 
     return heatmap
 
-def overlay_heatmap(img_path, heatmap, alpha=0.4):
-    img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+def overlay_heatmap(img, heatmap, alpha=0.4):
+    
     heatmap = cv2.resize(heatmap, (img.shape[1], img.shape[0]))
     heatmap = np.uint8(255 * heatmap)
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
