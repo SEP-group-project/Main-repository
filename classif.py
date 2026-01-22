@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 
 
-from data_import import train_images, test_images
+from data_prep import train_images, test_images
 
 
 num_classes = len(train_images.classes)
