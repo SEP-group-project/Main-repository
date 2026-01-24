@@ -101,7 +101,8 @@ def eval_epoch(model, loader):
         total += y.size(0)
     return loss_sum / total, correct / total
 
-#grancam
+#grandcam
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 preprocess = transforms.Compose([
@@ -227,10 +228,29 @@ def occlusion_salliency_face(model, face_bgr, class_idx, patch_size=12, stride=8
     sal /= sal.max() + 1e-8
     return sal
 
+# gradient based saliency map with SmoothGrad
 
+def coumpute_smoothGrad(model, img, target_class):
+
+    
+    face_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    face_rgb = cv2.resize(face_rgb, (64, 64))
+    x = preprocess(face_rgb).unsqueeze(0).to(device)
+    
+    
+    
+    saliency = Saliency(model)
+    nt = NoiseTunnel(saliency)
+    attribution = nt.attribution(img, nt_type='smoothgrad',nt_samples=10, target=target_class )
+
+    attr_np = attribution.squeeze().cpu().detach().numpy()
+    heatmap = np.sum(np.abs(attr_np), axis=0)
+    heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
+    
+    return heatmap
 
 #demo
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 model = EmotionCNN(num_classes=6).to(device)
 WEIGHTS_PATH = "best_model.pt"
 state = torch.load(WEIGHTS_PATH, map_location=device)
@@ -238,11 +258,6 @@ model.load_state_dict(state)
 model.eval()
 
 
-
-preprocess = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-])
 
 
 #@torch.no_grad()
@@ -271,7 +286,7 @@ if not cap.isOpened():
     raise RuntimeError("couldn't open webcam.")
 
 
-MODE = "none"  # "none", "gradcam", "vanilla", "occlusion"
+MODE = "none"  # "none", "gradcam", "vanilla", "occlusion", "SmoothGrad"
 FROZEN_FRAME = None
 
 
@@ -312,6 +327,10 @@ while True:
            superimposed_img = overlay_heatmap(face_roi, heatmap)
 
            frame[y1:y2, x1:x2] = superimposed_img
+        
+        elif MODE =="smoothgrad":
+            heatmap = coumpute_smoothGrad(model, face_roi, pred_idx)
+            superimposed_img = overlay_heatmap(face_roi, heatmap)
 
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -334,6 +353,10 @@ while True:
     if key == ord('o'):
        MODE = "none" if MODE == "occlusion" else "occlusion"
        FROZEN_FRAME = frame.copy() if MODE != "none" else None
+
+    if key == ord('s'):
+        MODE = "none" if MODE == "smoothgrad" else "smoothgrad"
+        FROZEN_FRAME = frame.copy() if MODE != "none" else None
 
     if key == ord('n'):
        MODE = "none"
