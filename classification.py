@@ -51,6 +51,7 @@ class EmotionCNN(nn.Module):
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("using device:", device)
 model = EmotionCNN(num_classes).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
@@ -89,9 +90,13 @@ def eval_epoch(model, loader):
         total += y.size(0)
     return loss_sum / total, correct / total
 
+if device.type == "cuda":
+    num_epochs = 100
+else :
+    num_epochs = 20
 
 best_acc = 0.0
-for epoch in range(1, 20):
+for epoch in range(num_epochs):
 
     train_loss, train_acc = train_epoch(model, train_loader)
     test_loss, test_acc   = eval_epoch(model, test_loader)
