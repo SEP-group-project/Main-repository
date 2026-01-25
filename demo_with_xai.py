@@ -278,6 +278,10 @@ def predict_emotion(face_bgr):
 
 
 cap = cv2.VideoCapture(0)
+
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
 face_detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
 if face_detector.empty():
