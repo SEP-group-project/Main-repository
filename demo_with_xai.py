@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
 from data_import import train_images, test_images
 from occlusion import occlusion_saliency
+from captum.attr import Saliency, NoiseTunnel
 
 num_classes = len(train_images.classes)
 idx_to_emotion = {
@@ -101,7 +102,7 @@ def eval_epoch(model, loader):
         total += y.size(0)
     return loss_sum / total, correct / total
 
-#grandcam
+#gradcam
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -241,7 +242,7 @@ def coumpute_smoothGrad(model, img, target_class):
     
     saliency = Saliency(model)
     nt = NoiseTunnel(saliency)
-    attribution = nt.attribution(img, nt_type='smoothgrad',nt_samples=10, target=target_class )
+    attribution = nt.attribution(x, nt_type='smoothgrad',nt_samples=10, target=target_class )
 
     attr_np = attribution.squeeze().cpu().detach().numpy()
     heatmap = np.sum(np.abs(attr_np), axis=0)
@@ -290,7 +291,7 @@ if not cap.isOpened():
     raise RuntimeError("couldn't open webcam.")
 
 
-MODE = "none"  # "none", "gradcam", "vanilla", "occlusion", "SmoothGrad"
+MODE = "none"  # "none", "gradcam", "vanilla", "occlusion", "smoothGrad"
 FROZEN_FRAME = None
 
 
