@@ -250,6 +250,50 @@ def coumpute_smoothGrad(model, img, target_class):
     
     return heatmap
 
+def get_activation_layer(model, which="last"):
+    if which == "first":
+        return model.features[0]
+    elif which == "middle":
+        return model.features[3]
+    else:
+        return model.features[6]
+
+
+class LayerActivationHook:
+    def __init__(self, layer: torch.nn.Module):
+        self.activation = None
+        self.hook = layer.register_forward_hook(self._hook_fn)
+
+    def _hook_fn(self, module, inputs, output):
+        self.activation = output.detach().cpu()
+
+    def remove(self):
+        self.hook.remove()
+
+
+def get_layer_activation_tensor(model, layer, image_tensor):
+    model.eval()
+    hook = LayerActivationHook(layer)
+    with torch.no_grad():
+        _ = model(image_tensor)
+    act = hook.activation
+    hook.remove()
+    return act
+
+
+def layer_activation_heatmap(model, face_bgr, which_layer="last"):
+    face_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
+    face_rgb = cv2.resize(face_rgb, (64, 64), interpolation=cv2.INTER_AREA)
+    x = preprocess(face_rgb).unsqueeze(0).to(device)
+
+    layer = get_activation_layer(model, which_layer)
+    act = get_layer_activation_tensor(model, layer, x)
+
+    heat = act.mean(dim=1)[0].numpy().astype(np.float32)
+    heat -= heat.min()
+    heat /= (heat.max() + 1e-8)
+    return heat
+
 #demo
 
 model = EmotionCNN(num_classes=6).to(device)
@@ -291,7 +335,7 @@ if not cap.isOpened():
     raise RuntimeError("couldn't open webcam.")
 
 
-MODE = "none"  # "none", "gradcam", "vanilla", "occlusion", "smoothGrad"
+MODE = "none"  # "none", "gradcam", "vanilla", "occlusion", "smoothGrad", "activation"
 FROZEN_FRAME = None
 
 
@@ -337,6 +381,13 @@ while True:
             heatmap = coumpute_smoothGrad(model, face_roi, pred_idx)
             superimposed_img = overlay_heatmap(face_roi, heatmap)
 
+        elif MODE == "activation":
+            heatmap = layer_activation_heatmap(model, face_roi, which_layer="last")
+            superimposed_img = overlay_heatmap(face_roi, heatmap)
+
+        if MODE in ["gradcam", "vanilla", "occlusion", "smoothgrad", "activation"]:
+            frame[y1:y2, x1:x2] = superimposed_img
+
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
         label = f"{emotion}: {conf:.2f} | {MODE}" 
@@ -361,6 +412,10 @@ while True:
 
     if key == ord('s'):
         MODE = "none" if MODE == "smoothgrad" else "smoothgrad"
+        FROZEN_FRAME = frame.copy() if MODE != "none" else None
+
+    if key == ord('a'):
+        MODE = "none" if MODE == "activation" else "activation"
         FROZEN_FRAME = frame.copy() if MODE != "none" else None
 
     if key == ord('n'):
