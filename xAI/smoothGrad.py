@@ -2,6 +2,9 @@ from captum.attr import Saliency, NoiseTunnel
 import cv2
 import numpy
 from torchvision import transforms
+import torch
+
+
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
