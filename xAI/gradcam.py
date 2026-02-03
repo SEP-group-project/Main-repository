@@ -12,9 +12,11 @@ preprocess = transforms.Compose([
 
 
 
+
+
 def get_last_conv_layer(model):
     
-    return model.features[6]
+    return model.features[3][3]
 
 
 
