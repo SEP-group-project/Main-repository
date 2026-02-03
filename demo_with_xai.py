@@ -116,7 +116,7 @@ while True:
            frame[y1:y2, x1:x2] = superimposed_img
         
         elif MODE =="smoothgrad":
-            heatmap = coumpute_smoothGrad(model, face_roi, pred_idx)
+            heatmap = coumpute_smoothGrad(model, face_roi, pred_idx, 20)
             superimposed_img = overlay_heatmap(face_roi, heatmap)
 
         elif MODE == "activation":
