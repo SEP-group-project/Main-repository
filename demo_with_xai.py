@@ -36,7 +36,7 @@ preprocess = transforms.Compose([
 
 
 model = EmotionCNN(num_classes=6).to(device)
-WEIGHTS_PATH = "best_model.pt"
+WEIGHTS_PATH = "best_model_cosine.pt"
 state = torch.load(WEIGHTS_PATH, map_location=device)
 model.load_state_dict(state)
 model.eval()
