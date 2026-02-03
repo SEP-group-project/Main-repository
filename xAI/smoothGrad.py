@@ -3,6 +3,7 @@ import cv2
 import numpy
 from torchvision import transforms
 import torch
+import numpy as np
 
 
 
@@ -14,7 +15,7 @@ preprocess = transforms.Compose([
     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
 ])
 
-def coumpute_smoothGrad(model, img, target_class):
+def coumpute_smoothGrad(model, img, target_class, samples):
 
     
     face_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -25,7 +26,7 @@ def coumpute_smoothGrad(model, img, target_class):
     
     saliency = Saliency(model)
     nt = NoiseTunnel(saliency)
-    attribution = nt.attribution(img, nt_type='smoothgrad',nt_samples=10, target=target_class )
+    attribution = nt.attribution(img, nt_type='smoothgrad',nt_samples=samples, target=target_class )
 
     attr_np = attribution.squeeze().cpu().detach().numpy()
     heatmap = np.sum(np.abs(attr_np), axis=0)
