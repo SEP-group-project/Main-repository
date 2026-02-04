@@ -32,8 +32,11 @@ def get_layer_activation(model, layer, image_tensor):
 def list_conv_layers(model: nn.Module):
     convs = []
     for name, m in model.named.modules():
-        is isinstance(m, nn.Conv2d):
-        convs.append((name,m))
+        #didn't want to delete your code, so i commened it out
+        #is isinstance(m, nn.Conv2d):
+        #convs.append((name,m))
+        if isinstance(m, nn.Conv2d):
+            convs.append((name,m))
     return convs
 
 def get_conv_layer(model: nn.Module, which: str = "last") -> nn.Module:
@@ -58,7 +61,8 @@ def layer_activation_heatmap_from_tensor(activation: torch.Tensor) -> torch.Tens
         raise ValueError( Activation must have shape [B, C, H, W]")
 
     heat = activation.mean(dim=1)[0]
-    heat = heat-heat.min
+    #added () to min
+    heat = heat-heat.min()
     heat = heat / (heat.max() + 1e-8)
 
     return heat
