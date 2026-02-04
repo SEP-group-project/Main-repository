@@ -14,5 +14,5 @@ test_datapath = "data/test_images"
 
 
 # Load Images
-train_images = datasets.ImageFolder(root=train_datapath, transform=transform,)
+train_images = datasets.ImageFolder(root=train_datapath, transform=train_transform,)
 test_images = datasets.ImageFolder(root=test_datapath, transform=transform)
