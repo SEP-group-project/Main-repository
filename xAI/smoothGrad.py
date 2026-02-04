@@ -26,7 +26,7 @@ def coumpute_smoothGrad(model, img, target_class, samples):
     
     saliency = Saliency(model)
     nt = NoiseTunnel(saliency)
-    attribution = nt.attribution(img, nt_type='smoothgrad',nt_samples=samples, target=target_class )
+    attribution = nt.attribution(x, nt_type='smoothgrad',nt_samples=samples, target=target_class )
 
     attr_np = attribution.squeeze().cpu().detach().numpy()
     heatmap = np.sum(np.abs(attr_np), axis=0)
