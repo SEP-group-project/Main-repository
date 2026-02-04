@@ -11,7 +11,7 @@ import torch.optim as optim
 from data_import import train_images, test_images
 from xAI.occlusion import occlusion_saliency
 from xAI.gradcam import gradcam, overlay_heatmap
-from xAI.LayerActivation import get_conv_layer, get_layer_activation_tensor, layer_activation_heatmap_from_tensor
+from xAI.LayerActivation import get_conv_layer, get_layer_activation, layer_activation_heatmap_from_tensor
 from xAI.smoothGrad import coumpute_smoothGrad
 from classification_model import EmotionCNN
 
@@ -44,7 +44,7 @@ def layer_activation_heatmap(model, face_bgr, which_layer="last"):
     x = preprocess(face_rgb).unsqueeze(0).to(device)
 
     layer = get_conv_layer(model, which_layer)
-    activation = get_layer_activation_tensor(model, layer, x)
+    activation = get_layer_activation(model, layer, x)
 
     heat = layer_activation_heatmap_from_tensor(activation).numpy().astype("float32")
     return heat
