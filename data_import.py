@@ -5,6 +5,7 @@ train_transform = transforms.Compose([ transforms.Resize((64, 64)),
     transforms.RandomHorizontalFlip(),
     transforms.RandomRotation(10),
     transforms.ColorJitter(brightness=0.2, contrast=0.2),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
     transforms.ToTensor(),
 ])
 
