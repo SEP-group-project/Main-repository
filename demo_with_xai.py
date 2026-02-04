@@ -7,10 +7,11 @@ import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
+
 from data_import import train_images, test_images
 from xAI.occlusion import occlusion_saliency
 from xAI.gradcam import gradcam, overlay_heatmap
-from xAI.LayerActivation import get_layer_activation
+from xAI.LayerActivation import get_conv_layer, get_layer_activation_tensor, layer_activation_heatmap_from_tensor
 from xAI.smoothGrad import coumpute_smoothGrad
 from classification_model import EmotionCNN
 
@@ -35,8 +36,22 @@ preprocess = transforms.Compose([
 ])
 
 
+def layer_activation_heatmap(model, face_bgr, which_layer="last"):
+    model.eval()
+
+    face_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
+    face_rgb = cv2.resize(face_rgb, (64,64), interpolation=cv2.INTER_AREA)
+    x = preprocess(face_rgb).unsqueeze(0).to(device)
+
+    layer = get_conv_layer(model, which_layer)
+    activation = get_layer_activation_tensor(model, layer, x)
+
+    heat = layer_activation_heatmap_from_tensor(activation).numpy().astype("float32")
+    return heat
+
+
 model = EmotionCNN(num_classes=6).to(device)
-WEIGHTS_PATH = "best_model.pt"
+WEIGHTS_PATH = "best_model_cosine.pt"
 state = torch.load(WEIGHTS_PATH, map_location=device)
 model.load_state_dict(state)
 model.eval()
@@ -73,7 +88,7 @@ if not cap.isOpened():
     raise RuntimeError("couldn't open webcam.")
 
 
-MODE = "none"  # "none", "gradcam", "vanilla", "occlusion", "smoothGrad", "activation"
+MODE = "none"  # "none", "gradcam", "vanilla", "occlusion", "smoothgrad", "activation"
 FROZEN_FRAME = None
 
 
@@ -105,23 +120,21 @@ while True:
            heatmap = gradcam(model,face_roi,pred_idx)
            superimposed_img = overlay_heatmap(face_roi,heatmap)
 
-        elif MODE == "vanilla":
-           heatmap = vanilla_grad_saliency(model, face_roi, pred_idx)
-           superimposed_img = overlay_heatmap(face_roi, heatmap)
+        #elif MODE == "vanilla":
+           #heatmap = vanilla_grad_saliency(model, face_roi, pred_idx)
+           #superimposed_img = overlay_heatmap(face_roi, heatmap)
 
         elif MODE == "occlusion":
            heatmap = occlusion_saliency(model, face_roi, pred_idx)
            superimposed_img = overlay_heatmap(face_roi, heatmap)
-
-           frame[y1:y2, x1:x2] = superimposed_img
         
         elif MODE =="smoothgrad":
             heatmap = coumpute_smoothGrad(model, face_roi, pred_idx)
             superimposed_img = overlay_heatmap(face_roi, heatmap)
 
         elif MODE == "activation":
-            heatmap = get_layer_activation(model, face_roi, which_layer="last")
-            superimposed_img = gradcam.overlay_heatmap(face_roi, heatmap)
+            heatmap = layer_activation_heatmap(model, face_roi, which_layer="last")
+            superimposed_img = overlay_heatmap(face_roi, heatmap)
 
         if MODE in ["gradcam", "vanilla", "occlusion", "smoothgrad", "activation"]:
             frame[y1:y2, x1:x2] = superimposed_img
@@ -140,9 +153,9 @@ while True:
        MODE = "none" if MODE == "gradcam" else "gradcam"
        FROZEN_FRAME = frame.copy() if MODE != "none" else None
 
-    if key == ord('v'):
-       MODE = "none" if MODE == "vanilla" else "vanilla"
-       FROZEN_FRAME = frame.copy() if MODE != "none" else None
+    #if key == ord('v'):
+       #MODE = "none" if MODE == "vanilla" else "vanilla"
+       #FROZEN_FRAME = frame.copy() if MODE != "none" else None
 
     if key == ord('o'):
        MODE = "none" if MODE == "occlusion" else "occlusion"
