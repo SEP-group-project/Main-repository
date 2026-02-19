@@ -2,11 +2,12 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from data_import import test_images
+from sklearn.metrics import f1_score, classification_report,matthews_corrcoef
 
 num_classes = 6
 idx_to_emotion = {0:"surprise",1:"fear",2:"disgust",3:"happiness",4:"sadness",5:"anger"}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-loader = DataLoader(test_images, batch_size=64, shuffle=False)
+test_loader = DataLoader(test_images, batch_size=64, shuffle=False)
 
 class EmotionCNN(nn.Module):
     def __init__(self, num_classes):
@@ -48,18 +49,31 @@ class EmotionCNN(nn.Module):
 
 
 
-
 model = EmotionCNN(num_classes).to(device)
 model.load_state_dict(torch.load("best_model_cosine.pt", map_location=device))
 model.eval()
 
+predictions = []
+all_labels = []
 
-
-all_preds=[]
 with torch.no_grad():
-    for x,_ in loader:
-        all_preds.extend(model(x.to(device)).argmax(1).cpu().tolist())
+    for imgs, labels in test_loader:
+        imgs, labels = imgs.to(device), labels.to(device)
+        outputs = model(imgs)
+        preds = torch.argmax(outputs, dim=1)
+        predictions.extend(preds.numpy())
+        all_labels.extend(labels.numpy())
 
-total=len(all_preds)
+#How often the model predicted each class
+print("\nClass Distribution in Predictions:")
+total=len(predictions)
 for cls in range(num_classes):
-    print(f"{idx_to_emotion[cls]}: {all_preds.count(cls)/total*100:.2f}%")
+    print(f"{idx_to_emotion[cls]}: {predictions.count(cls)/total*100:.2f}%")
+
+
+print("\nPrecision Metric:")
+print(classification_report(all_labels, predictions, digits=4))
+f1_macro = f1_score(all_labels, predictions, average="macro")
+print(f"Macro F1 Score: {f1_macro:.4f}")
+mcc = matthews_corrcoef(all_labels, predictions)
+print(f"\nMatthews Correlation Coefficient: {mcc:.4f}")
