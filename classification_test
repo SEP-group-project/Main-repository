@@ -1,0 +1,79 @@
+import torch
+from torch.utils.data import DataLoader
+import torch.nn as nn
+from data_import import test_images
+from sklearn.metrics import f1_score, classification_report,matthews_corrcoef
+
+num_classes = 6
+idx_to_emotion = {0:"surprise",1:"fear",2:"disgust",3:"happiness",4:"sadness",5:"anger"}
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+test_loader = DataLoader(test_images, batch_size=64, shuffle=False)
+
+class EmotionCNN(nn.Module):
+    def __init__(self, num_classes):
+        super().__init__()
+
+        def block(in_ch, out_ch):
+            return nn.Sequential(
+                nn.Conv2d(in_ch, out_ch, 3, padding=1, bias=False),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_ch, out_ch, 3, padding=1, bias=False),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+                nn.MaxPool2d(2),
+                nn.Dropout2d(0.15),
+            )
+
+        self.features = nn.Sequential(
+            block(3, 32),
+            block(32, 64),
+            block(64, 128),
+            block(128, 256),
+        )
+
+        self.pool = nn.AdaptiveAvgPool2d(1)
+
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(256, 256),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(256, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.pool(x)
+        return self.classifier(x)
+
+
+
+model = EmotionCNN(num_classes).to(device)
+model.load_state_dict(torch.load("best_model_cosine.pt", map_location=device))
+model.eval()
+
+predictions = []
+all_labels = []
+
+with torch.no_grad():
+    for imgs, labels in test_loader:
+        imgs, labels = imgs.to(device), labels.to(device)
+        outputs = model(imgs)
+        preds = torch.argmax(outputs, dim=1)
+        predictions.extend(preds.numpy())
+        all_labels.extend(labels.numpy())
+
+#How often the model predicted each class
+print("\nClass Distribution in Predictions:")
+total=len(predictions)
+for cls in range(num_classes):
+    print(f"{idx_to_emotion[cls]}: {predictions.count(cls)/total*100:.2f}%")
+
+
+print("\nPrecision Metric:")
+print(classification_report(all_labels, predictions, digits=4))
+f1_macro = f1_score(all_labels, predictions, average="macro")
+print(f"Macro F1 Score: {f1_macro:.4f}")
+mcc = matthews_corrcoef(all_labels, predictions)
+print(f"\nMatthews Correlation Coefficient: {mcc:.4f}")
