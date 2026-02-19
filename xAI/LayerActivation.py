@@ -58,7 +58,7 @@ def get_conv_layer(model: nn.Module, which: str = "last") -> nn.Module:
 
 def layer_activation_heatmap_from_tensor(activation: torch.Tensor) -> torch.Tensor:
     if activation.dim() != 4:
-        raise ValueError( Activation must have shape [B, C, H, W]")
+        raise ValueError("Activation must have shape [B, C, H, W]")
 
     heat = activation.mean(dim=1)[0]
     #added () to min
