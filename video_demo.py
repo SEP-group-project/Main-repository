@@ -13,16 +13,12 @@ idx_to_emotion = {
     5: "anger",       
 }
 
-
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = EmotionCNN(num_classes=6).to(device)
 WEIGHTS_PATH = "best_model_cosine.pt"
 state = torch.load(WEIGHTS_PATH, map_location=device)
 model.load_state_dict(state)
 model.eval()
-
-
 
 preprocess = transforms.Compose([
     transforms.ToTensor(),
@@ -42,16 +38,22 @@ def predict_emotion(face_bgr):
     pred_idx = int(pred.item())
     conf = float(conf.item())
     emotion = idx_to_emotion.get(pred_idx, str(pred_idx))
-    return x,emotion, conf, pred_idx
-
-
+    return x, emotion, conf, pred_idx
 
 def process_video(input_path, output_path):
     cap = cv2.VideoCapture(input_path)
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open video {input_path}")
     
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    
+    ext = output_path.split('.')[-1].lower()
+    if ext == 'mp4':
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    elif ext == 'avi':
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    else:
+        raise ValueError("Unsupported output format. Use .avi or .mp4")
+
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -60,10 +62,10 @@ def process_video(input_path, output_path):
 
     face_detector = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
     if face_detector.empty():
-        raise RuntimeError("couldn't load haarcascade_frontalface_default.xml ")
+        raise RuntimeError("Couldn't load haarcascade_frontalface_default.xml")
 
     while True:
-        ret,frame = cap.read()
+        ret, frame = cap.read()
         if not ret:
             break
 
@@ -82,14 +84,9 @@ def process_video(input_path, output_path):
             x, emotion, conf, pred_class = predict_emotion(face_roi)
 
             heatmap = gradcam_heatmap(model, x, pred_class)
-           
-           
             superimposed = overlay(face_roi, heatmap)
             superimposed_bgr = cv2.cvtColor(superimposed, cv2.COLOR_RGB2BGR)
             frame[y1:y2, x1:x2] = superimposed_bgr
-
-            #frame[y1:y2, x1:x2] = superimposed
-
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             label = f"{emotion}: {conf:.2f}"
@@ -103,17 +100,7 @@ def process_video(input_path, output_path):
 
 
 if __name__ == "__main__":
-    input_video = "input.mp4"
-    output_video = "output_gradcam.avi"
+    input_video = input("Enter the path of the input video: ")
+    output_video = input("Enter the path for the output video (include .avi or .mp4): ")
 
     process_video(input_video, output_video)
-
-
-        
-
-
-
-
-
-
-
