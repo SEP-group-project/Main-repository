@@ -2,7 +2,7 @@ import cv2
 import torch
 from torchvision import transforms
 from model import EmotionCNN
-from xAI.gradcam2 import gradcam_heatmap, overlay 
+from gradcam2 import gradcam_heatmap, overlay 
 
 idx_to_emotion = {
     0: "surprise",    
