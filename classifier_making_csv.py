@@ -4,7 +4,6 @@ from torchvision import transforms
 from PIL import Image
 import os
 import csv
-from classification_model import EmotionCNN, test_tfms
 
 model_path = "best_model_cosine.pt"
 output_csv = "classification_results.csv"
@@ -13,6 +12,55 @@ classes = ['surprise', 'fear', 'disgust', 'happiness', 'sadness', 'anger']
 # CSV colum order as in the example in the slides
 csv_order = ['happiness', 'surprise', 'sadness', 'anger', 'disgust', 'fear']
 
+#EmotionCNN and test_tfms copied from classification model so it can run without having to run the whle training process due to the import.
+
+class EmotionCNN(nn.Module):
+    def __init__(self, num_classes):
+        super().__init__()
+
+        def block(in_ch, out_ch):
+            return nn.Sequential(
+                nn.Conv2d(in_ch, out_ch, 3, padding=1, bias=False),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_ch, out_ch, 3, padding=1, bias=False),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+                nn.MaxPool2d(2),
+                nn.Dropout2d(0.15),
+            )
+
+        self.features = nn.Sequential(
+            block(3, 32),
+            block(32, 64),
+            block(64, 128),
+            block(128, 256),
+        )
+
+        self.pool = nn.AdaptiveAvgPool2d(1)
+
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(256, 256),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(256, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.pool(x)
+        return self.classifier(x)
+
+
+
+
+test_tfms = T.Compose([
+    T.Resize((64, 64)),
+    RandomHistEqualize(p=1.0),
+    T.ToTensor(),
+    T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+])
 
 def classify_image(model, image_path, device):
     img = Image.open(image_path).convert("RGB")
@@ -59,3 +107,4 @@ def classify_folder_images(folder_path):
 
 
 classify_folder_images(input("please add your input path: "))
+
