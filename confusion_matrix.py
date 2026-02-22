@@ -1,3 +1,4 @@
+# this is the code that generated the confusion matrix of our model, ran on best_model_cosine.pt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -112,5 +113,6 @@ plt.ylabel("true")
 plt.title("normalized confusion matrix")
 
 plt.tight_layout()
+
 
 plt.savefig("confusion_matrix.png", dpi=300)
