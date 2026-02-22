@@ -78,38 +78,27 @@ This program processes a video file to detect faces, predict emotions using our 
 
 ---
 
-## Features
-
-- Grad-CAM visualization for model interpretability
-- Saves output video with overlaid heatmaps and emotion labels
-- Supports common video formats like `.mp4` and `.avi`
-
----
-
-## Supported Emotions
-
-- Surprise  
-- Fear  
-- Disgust  
-- Happiness  
-- Sadness  
-- Anger  
-
----
-
 ## Environment Setup
 
 Install the required Python packages:
 
 
-pip install torch torchvision opencv-python numpy pytorch-grad-cam
+conda create -n demo python=3.11
+conda activate demo
+
+conda install pytorch torchvision -c pytorch
+conda install opencv numpy -c conda-forge
+pip install pytorch-grad-cam (pytorch-grad-cam is not available on conda)
+
+
+---
 
 ## Usage
 
-1. Place input video in the project directory or provide a full path.
+1. open video_demo folder and place input video in the project directory
 
 2. Run the Program:
-python video_demo/demo.py
+python video_demo.py
 
 3. Enter the input and output paths
 4. The processed video with overlaid Grad-CAM and predicted emotion labels will be saved at the output path.
