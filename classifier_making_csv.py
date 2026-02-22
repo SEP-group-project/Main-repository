@@ -1,4 +1,4 @@
-from random import random
+import random
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -129,3 +129,4 @@ def classify_folder_images(folder_path):
 
 
 classify_folder_images(input("please add your input path: "))
+
