@@ -1,16 +1,17 @@
 # Main-repository
 # Data Setup
-##Using our dataset:
+## Using our dataset:
 Download the data set from out GitHub by downloading the “data” folder: https://github.com/SEP-group-project/Main-repository .
 The data has to be in the same folder as the other scripts.
   
 Should the download over github not be an option, download the dataset here: https://www.kaggle.com/datasets/shuvoalok/raf-db-dataset. 
 In this case you have to delete both folders 7 since we don't use neutral images and rename the 'test' and 'train' folders to 'test_images" and 'train_images'. In the end, the data has to match the subfolder structure below, including having 'data' as the folder name where 'test_images" and 'train_images' are saved.
 
-##Using your own Dataset:
+## Using your own Dataset:
 The data set has to follow the following folder structure. The folders have to be labeled as numbers according to the emotions:
 1:”surprise”, 2:”fear”, 3:”disgust”, 4:”happiness”, 5:”sad-
 ness”, 6:”anger”.
+
 data/
 ├── test_images/
 │   ├── 1/
