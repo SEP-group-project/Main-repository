@@ -1,4 +1,28 @@
 # Main-repository
+
+# Classification model
+## Prerequirements
+
+RAF-DB dataset installed and in the same folder 
+
+## Environment setup using conda:
+
+Step 1: Create Conda Environment 
+conda create -n fer_cls python=3.10 -y	
+
+Step 2: Install packages for model itself: 
+conda activate fer_cls
+conda install pytorch torchvision torchaudio -c pytorch
+conda install numpy pillow
+
+Step 3 (extra): Install packages for confusion matrix and plots:
+conda install matplotlib scikit-learn
+
+## Output
+
+The classification model outputs a trained model best_model_cosine.pt
+
+
 # Video Demo: Facial Emotion Recognition with Grad-CAM
 
 This program processes a video file to detect faces, predict emotions using our CNN model, and overlay **Grad-CAM heatmaps** along with predicted emotion labels on each detected face. The processed video is saved as output.
