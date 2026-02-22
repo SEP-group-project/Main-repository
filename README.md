@@ -83,12 +83,12 @@ This program processes a video file to detect faces, predict emotions using our 
 Install the required Python packages:
 
 
-conda create -n demo python=3.11
-conda activate demo
+-conda create -n demo python=3.11
+-conda activate demo
 
-conda install pytorch torchvision -c pytorch
-conda install opencv numpy -c conda-forge
-pip install pytorch-grad-cam (pytorch-grad-cam is not available on conda)
+-conda install pytorch torchvision -c pytorch
+-conda install opencv numpy -c conda-forge
+-pip install pytorch-grad-cam (pytorch-grad-cam is not available on conda)
 
 
 ---
