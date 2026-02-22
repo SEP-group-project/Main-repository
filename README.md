@@ -1,4 +1,21 @@
 # Main-repository
+
+# General Environment setup:
+## Step 1: Create Conda Environment 
+- conda create -n fer_cls python=3.10 -y
+- conda activate fer_cls	
+## Step 2: Install packages for model and data: 
+- conda install pytorch torchvision torchaudio -c pytorch
+- conda install numpy pillow
+## Step 3 (extra): Install packages for confusion matrix and plots:
+- conda install matplotlib scikit-learn	
+## Step 4: Install additional packages for video demo and Grad-CAM
+- This step requires user to pip install pytorch-grad-cam inside the conda environment since it isn’t consistently available on conda. 
+- conda install opencv -c conda-forge 
+- pip install pytorch-grad-cam
+
+
+
 # Data Setup
 ## Using our dataset:
 Download the data set from out GitHub by downloading the “data” folder: https://github.com/SEP-group-project/Main-repository .
@@ -49,6 +66,7 @@ import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import f1_score, classification_report,matthews_corrcoef
 from torchvision import datasets, transforms
+
 # Classification model
 ## Prerequirements
 
