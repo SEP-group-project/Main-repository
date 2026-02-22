@@ -1,5 +1,53 @@
 # Main-repository
+# Data Setup
+##Using our dataset:
+Download the data set from out GitHub by downloading the “data” folder: https://github.com/SEP-group-project/Main-repository .
+The data has to be in the same folder as the other scripts.
+  
+Should the download over github not be an option, download the dataset here: https://www.kaggle.com/datasets/shuvoalok/raf-db-dataset. 
+In this case you have to delete both folders 7 since we don't use neutral images and rename the 'test' and 'train' folders to 'test_images" and 'train_images'. In the end, the data has to match the subfolder structure below, including having 'data' as the folder name where 'test_images" and 'train_images' are saved.
 
+##Using your own Dataset:
+The data set has to follow the following folder structure. The folders have to be labeled as numbers according to the emotions:
+1:”surprise”, 2:”fear”, 3:”disgust”, 4:”happiness”, 5:”sad-
+ness”, 6:”anger”.
+data/
+├── test_images/
+│   ├── 1/
+│   ├── 2/
+│   ├── 3/
+│   ├── 4/
+│   ├── 5/
+│   └── 6/
+└── train_images/
+    ├── 1/
+    ├── 2/
+    ├── 3/
+    ├── 4/
+    ├── 5/
+    └── 6/
+    
+# How to create a csv file using our model:
+
+First make sure you have a “best_mode_cosine.pt” file in the folder you have saved “classifier_making_csv” in. This should be the case by default. Then run the script “classifier_making_csv”. Your terminal will ask for an input path to the folder you have all your images in. This folder must be a folder of images with no subfolders. Input the input path. If you accidentally put in a wrong path you will have to rerun the script. The csv file will be saved as “classification_results.csv” and override older versions.
+
+## Environment Setup
+
+Install the required Python packages:
+
+
+import random
+import torch.nn.functional as F
+import torch.nn as nn
+import torchvision.transforms as T
+import torchvision.transforms.functional as TF
+from PIL import Image
+import os
+import csv
+import torch
+from torch.utils.data import DataLoader
+from sklearn.metrics import f1_score, classification_report,matthews_corrcoef
+from torchvision import datasets, transforms
 # Classification model
 ## Prerequirements
 
