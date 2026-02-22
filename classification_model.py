@@ -1,3 +1,5 @@
+# further commits of the classification model are in the classification branch, as well as other models we've explored
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -119,7 +121,7 @@ criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
 optimizer = optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-2)
 
 if device.type == "cuda":
-    num_epochs = 60
+    num_epochs = 200
 else:
     num_epochs = 20
 
@@ -178,3 +180,4 @@ for epoch in range(num_epochs):
         torch.save(model.state_dict(), "best_model_cosine.pt")
 
 print("best test accuracy:", best_acc)
+
