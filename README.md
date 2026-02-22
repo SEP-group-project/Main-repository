@@ -8,15 +8,15 @@ RAF-DB dataset installed and in the same folder
 ## Environment setup using conda:
 
 Step 1: Create Conda Environment 
-conda create -n fer_cls python=3.10 -y	
+- conda create -n fer_cls python=3.10 -y	
 
 Step 2: Install packages for model itself: 
-conda activate fer_cls
-conda install pytorch torchvision torchaudio -c pytorch
-conda install numpy pillow
+- conda activate fer_cls
+- conda install pytorch torchvision torchaudio -c pytorch
+- conda install numpy pillow
 
 Step 3 (extra): Install packages for confusion matrix and plots:
-conda install matplotlib scikit-learn
+- conda install matplotlib scikit-learn
 
 ## Output
 
