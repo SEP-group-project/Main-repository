@@ -1,7 +1,9 @@
+from random import random
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
-from torchvision import transforms
+import torchvision.transforms as T
+import torchvision.transforms.functional as TF
 from PIL import Image
 import os
 import csv
@@ -12,6 +14,25 @@ classes = ['surprise', 'fear', 'disgust', 'happiness', 'sadness', 'anger']
 
 # CSV colum order as in the example in the slides
 csv_order = ['happiness', 'surprise', 'sadness', 'anger', 'disgust', 'fear']
+
+class RandomGamma:
+    def __init__(self, gamma_range=(0.7, 1.6), p=0.7):
+        self.gamma_range = gamma_range
+        self.p = p
+    def __call__(self, img):
+        if random.random() < self.p:
+            img = TF.adjust_gamma(img, random.uniform(*self.gamma_range))
+        return img
+
+
+class RandomHistEqualize:
+    def __init__(self, p=0.5):
+        self.p = p
+    def __call__(self, img):
+        if random.random() < self.p:
+            img = TF.equalize(img)
+        return img
+
 
 #EmotionCNN and test_tfms copied from classification model so it can run without having to run the whle training process due to the import.
 
@@ -108,5 +129,3 @@ def classify_folder_images(folder_path):
 
 
 classify_folder_images(input("please add your input path: "))
-
-
