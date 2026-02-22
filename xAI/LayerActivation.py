@@ -29,15 +29,14 @@ def get_layer_activation(model, layer, image_tensor):
 
     return activation
 
+
+
 def list_conv_layers(model: nn.Module):
-    convs = []
-    for name, m in model.named.modules():
-        #didn't want to delete your code, so i commened it out
-        #is isinstance(m, nn.Conv2d):
-        #convs.append((name,m))
-        if isinstance(m, nn.Conv2d):
-            convs.append((name,m))
-    return convs
+    return[
+        (name,m)
+        for name, m in model.named_modules()
+        if isinstance(m, nn.Conv2d)
+    ]
 
 def get_conv_layer(model: nn.Module, which: str = "last") -> nn.Module:
     convs = list_conv_layers(model)
@@ -66,3 +65,6 @@ def layer_activation_heatmap_from_tensor(activation: torch.Tensor) -> torch.Tens
     heat = heat / (heat.max() + 1e-8)
 
     return heat
+
+
+
