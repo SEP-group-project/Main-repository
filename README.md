@@ -84,10 +84,13 @@ Install the required Python packages:
 
 
 -conda create -n demo python=3.11
+
 -conda activate demo
 
 -conda install pytorch torchvision -c pytorch
+
 -conda install opencv numpy -c conda-forge
+
 -pip install pytorch-grad-cam (pytorch-grad-cam is not available on conda)
 
 
